@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports: ["2181:2181"]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    depends_on:
+      - kafka
+    ports: ["8081:8081"]
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  mongo:
+    image: mongo:6
+    ports: ["27018:27017"]
+
+  # --- Producer ---
+  shipping-ops-producer:
+    build:
+      context: .   # 👈 este es el repo actual
+      dockerfile: Dockerfile
+    image: youruser/shipping-ops-producer:1.0
+    ports: ["8087:8087"]
+    environment:
+      SERVER_PORT: 8087
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      REDIS_HOST: redis
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - kafka
+      - schema-registry
+      - redis
+
+  # --- Consumer ---
+  dispatch-orchestrator-consumer:
+    build:
+      context: ../dispatch-orchestrator-consumer   # 👈 ruta relativa al repo del producer
+      dockerfile: Dockerfile
+    image: youruser/dispatch-orchestrator-consumer:1.0
+    ports: ["8088:8088"]
+    environment:
+      SERVER_PORT: 8088
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      REDIS_HOST: redis
+      MONGO_URI: mongodb://mongo:27017/shipmentsdb
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - kafka
+      - schema-registry
+      - redis
+      - mongo
