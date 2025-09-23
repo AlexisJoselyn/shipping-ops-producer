@@ -1,4 +1,17 @@
 package com.logistics.shipping_ops_producer.domain.policy;
 
-public class AttemptPolicy {
+import com.logistics.shipping_ops_producer.api.dto.ShippingRequestDto;
+import io.reactivex.rxjava3.core.Single;
+
+//Qué hace?
+//Define el contrato que todas las políticas deben seguir.
+//Cada política:
+//Recibe un CardReplacementRequestDto (la solicitud de reemplazo de tarjeta).
+//Retorna un Single<Integer> → el número de intento resuelto (ej. 1 o 2).
+//Tiene un name() para identificarla ("firstTimePolicy", "secondTimePolicy", "orchestrator").
+//Esto permite que diferentes políticas (FirstTime, SecondTime, etc.) implementen su propia lógica sin que el resto del sistema se acople a ellas.
+
+public interface AttemptPolicy {
+    Single<Integer> resolveAttempt(ShippingRequestDto Dto);
+    String name(); // <- existe y es abstracto
 }
