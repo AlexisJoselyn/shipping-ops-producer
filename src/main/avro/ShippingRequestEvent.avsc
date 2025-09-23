@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "ShippingRequestEvent",
+  "namespace": "com.logistics.events",
+  "fields": [
+    {"name": "eventId", "type": "string"},
+    {"name": "orderId", "type": "string"},
+    {"name": "customerId", "type": "string"},
+    {"name": "packageType", "type": "string"},
+    {"name": "destinationAddress", "type": "string"},
+    {"name": "priority", "type": "string"},
+    {"name": "requestedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+    {"name": "status", "type": "string"}
+  ]
+}
