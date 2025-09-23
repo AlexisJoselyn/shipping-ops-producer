@@ -3,7 +3,8 @@ package com.logistics.shipping_ops_producer.domain.service;
 import com.logistics.shipping_ops_producer.api.dto.ShippingRequestDto;
 import com.logistics.shipping_ops_producer.domain.mapper.EventMapper;
 import com.logistics.shipping_ops_producer.domain.port.EventPublisher;
-import com.logistics.events.ShippingRequestEvent;
+import com.logistics.events.ShipmentEvent;
+import io.reactivex.rxjava3.core.Single;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
  * Usa el Mapper, aplica Policies y delega en los puertos.
  * Es el “cerebro” que coordina todo, sin saber nada de Kafka o Redis.
  */
-
 @Service
 public class EventService {
 
@@ -32,13 +32,11 @@ public class EventService {
         this.topic = topic;
     }
 
-    public String process(ShippingRequestDto dto) {
-        // convertir el DTO al evento Avro
-        ShippingOrderEvent event = mapper.toEvent(dto);
-
-        // publicar a Kafka usando el puerto
-        publisher.publish(topic, event.getRequestId(), event);
-
-        return event.getEventId(); // devuelve el ID para rastreo
+    public Single<String> process(ShippingRequestDto dto) {
+        return Single.fromCallable(() -> {
+            ShipmentEvent event = mapper.toEvent(dto);
+            publisher.publish(topic, event.getShipmentId(), event);
+            return event.getEventId();
+        });
     }
 }

@@ -1,7 +1,7 @@
 package com.logistics.shipping_ops_producer.domain.mapper;
 
+import com.logistics.events.ShipmentEvent;
 import com.logistics.shipping_ops_producer.api.dto.ShippingRequestDto;
-import com.logistics.events.ShippingOrderEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -12,15 +12,21 @@ import java.util.UUID;
 @Component
 public class EventMapper {
 
-    public ShippingOrderEvent toEvent(ShippingRequestDto dto) {
-        return ShippingOrderEvent.newBuilder()
+    public ShipmentEvent toEvent(ShippingRequestDto dto) {
+        return ShipmentEvent.newBuilder()
                 .setEventId(UUID.randomUUID().toString())   // se genera automáticamente
+                .setShipmentId(dto.getShipmentId())
                 .setOrderId(dto.getOrderId())
                 .setCustomerId(dto.getCustomerId())
                 .setAddress(dto.getAddress())
-                .setPriority(dto.getPriority())
-                .setCreatedAt(dto.getCreatedAt().toEpochMilli()) // Avro espera long
+                .setCity(dto.getCity())
+                .setPostalCode(dto.getPostalCode())
+                .setServiceLevel(dto.getServiceLevel())
+                .setRequestedAt(dto.getRequestedAt()) // Avro espera long
+                .setAttemptNumber(dto.getAttemptNumber())
+                .setCorrelationId(dto.getCorrelationId())
                 .setStatus(dto.getStatus())
                 .build();
     }
 }
+
