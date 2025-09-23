@@ -34,7 +34,7 @@ public class EventService {
 
     public String process(ShippingRequestDto dto) {
         // convertir el DTO al evento Avro
-        CardReplacementEvent event = mapper.toEvent(dto);
+        ShippingOrderEvent event = mapper.toEvent(dto);
 
         // publicar a Kafka usando el puerto
         publisher.publish(topic, event.getRequestId(), event);
