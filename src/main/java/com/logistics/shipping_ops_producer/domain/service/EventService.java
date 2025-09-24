@@ -8,6 +8,8 @@ import io.reactivex.rxjava3.core.Single;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * Coordina el flujo de negocio: convierte DTO → Evento Avro
  * y lo publica usando el puerto EventPublisher.
@@ -34,6 +36,7 @@ public class EventService {
 
     public Single<String> process(ShippingRequestDto dto) {
         return Single.fromCallable(() -> {
+            String shipmentId = dto.getShipmentId() != null ? dto.getShipmentId() : UUID.randomUUID().toString();
             ShipmentEvent event = mapper.toEvent(dto);
             publisher.publish(topic, event.getShipmentId(), event);
             return event.getEventId();
