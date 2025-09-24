@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  # Spring Boot 'shipping-ops-producer' metrics
+  - job_name: 'shipping-ops-producer'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['shipping-ops-producer:8087']
+
+  # Spring Boot 'dispatch-orchestrator-consumer' metrics
+  - job_name: 'dispatch-orchestrator-consumer'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['dispatch-orchestrator-consumer:8088']
+
+  # Kafka broker metrics via kafka-exporter
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+  # Redis metrics via redis-exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # MongoDB metrics via mongodb-exporter
+  - job_name: 'mongodb-exporter'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
