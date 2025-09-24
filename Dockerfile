@@ -20,4 +20,7 @@ ENV JAVA_OPTS=""
 # Puerto (se ajusta según el microservicio)
 EXPOSE 8087
 
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]
+# Se agrega una espera activa para asegurar que Redis esté listo
+RUN apt-get update && apt-get install -y wait-for-it
+ENTRYPOINT ["sh", "-c", "wait-for-it redis:6379 --timeout=30 --strict -- java $JAVA_OPTS -jar app.jar"]
+# ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]

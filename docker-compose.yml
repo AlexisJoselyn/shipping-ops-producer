@@ -3,10 +3,10 @@ services:
     image: confluentinc/cp-zookeeper:7.6.1
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-    ports: ["2181:2181"]
+    ports: [ "2181:2181" ]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "bash", "-lc", "echo ruok | nc -w 2 127.0.0.1 2181 | grep imok || exit 1"]
+      test: ["CMD", "bash", "-lc", ": </dev/tcp/127.0.0.1/2181"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -72,16 +72,17 @@ services:
 
   # --- Producer ---
   shipping-ops-producer:
-    build:
-      context: .   # 👈 este es el repo actual
-      dockerfile: Dockerfile
-    image: AlexisJoselyn/shipping-ops-producer:1.0
+    build: .
+    image: alexisjoselyn/shipping-ops-producer:1.0
     ports: ["8087:8087"]
     environment:
       SERVER_PORT: 8087
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      REDIS_HOST: redis
+      # Propiedades estándar de Spring Data Redis
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+      SPRING_DATA_REDIS_URL: redis://redis:6379
       SPRING_PROFILES_ACTIVE: docker
     depends_on:
       kafka: { condition: service_healthy }
@@ -89,7 +90,7 @@ services:
       redis: { condition: service_healthy }
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "bash", "-lc", "wget -qO- http://localhost:8085/actuator/health | grep UP >/dev/null 2>&1"]
+      test: ["CMD", "bash", "-lc", "wget -qO- http://localhost:8087/actuator/health | grep UP >/dev/null 2>&1"]
       interval: 15s
       timeout: 5s
       retries: 20
@@ -100,7 +101,7 @@ services:
     build:
       context: ../dispatch-orchestrator-consumer   # 👈 ruta relativa al repo del producer
       dockerfile: Dockerfile
-    image: AlexisJoselyn/dispatch-orchestrator-consumer:1.0
+    image: alexisjoselyn/dispatch-orchestrator-consumer:1.0
     ports: ["8088:8088"]
     environment:
       SERVER_PORT: 8088
@@ -156,7 +157,7 @@ services:
     image: prom/prometheus:v2.55.1
     depends_on:
       - shipping-ops-producer
-      - dispatch-consumer
+      - dispatch-orchestrator-consumer
       - kafka-exporter
       - redis-exporter
       - mongodb-exporter

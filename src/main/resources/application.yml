@@ -7,8 +7,9 @@ spring:
     data:
         redis:
         client-type: lettuce
-        host: ${REDIS_HOST:localhost}
-        port: ${REDIS_PORT:6379}
+        url: ${SPRING_DATA_REDIS_URL:redis://localhost:6379}
+#        host: ${REDIS_HOST:localhost}
+#        port: 6379
 
 kafka:
     topic: logistics.shipments.v1
